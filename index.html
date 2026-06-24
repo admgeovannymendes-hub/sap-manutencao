@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAP - Pesquisa e Documentação Técnica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Urbanist:wght@600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --secondary: #0f172a;
+            --secondary-light: #1e293b;
+            --bg-color: #cbd5e1;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body { font-family: 'DM Sans', sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+
+        .app-container { background-color: var(--surface); width: 100%; max-width: 1100px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+
+        .header { padding: 30px 40px; background-color: var(--secondary); color: white; text-align: center; border-bottom: 4px solid var(--primary); }
+        .header h1 { font-family: 'Urbanist', sans-serif; font-size: 32px; letter-spacing: 1px; text-transform: uppercase; }
+        .header p { color: #94a3b8; font-size: 16px; margin-top: 5px; }
+
+        .stepper { display: flex; justify-content: space-between; padding: 20px 40px; background-color: #f8fafc; border-bottom: 1px solid var(--border); overflow-x: auto;}
+        .step-indicator { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; color: var(--text-muted); font-weight: 700; font-family: 'Urbanist', sans-serif; text-transform: uppercase; font-size: 12px; text-align: center; min-width: 70px;}
+        .step-indicator::after { content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 3px; background-color: var(--border); z-index: 1; }
+        .step-indicator:last-child::after { display: none; }
+        .step-number { width: 34px; height: 34px; border-radius: 50%; background-color: var(--surface); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; z-index: 2; margin-bottom: 8px; transition: all 0.3s; }
+        .step-indicator.active { color: var(--primary); }
+        .step-indicator.active .step-number { border-color: var(--primary); background-color: var(--primary); color: var(--secondary); }
+        .step-indicator.completed .step-number { border-color: var(--secondary); background-color: var(--secondary); color: white; }
+        
+        .content-area { padding: 40px; min-height: 500px; position: relative; }
+        .step-content { display: none; animation: fadeIn 0.4s; }
+        .step-content.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2.section-title { font-family: 'Urbanist', sans-serif; font-size: 28px; color: var(--secondary); margin-bottom: 25px; border-left: 6px solid var(--primary); padding-left: 15px; text-transform: uppercase;}
+        
+        /* INTRO / CONTEXT BOXES */
+        .intro-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 30px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .intro-box h3 { color: var(--secondary); margin-bottom: 15px; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .intro-box p { font-size: 17px; line-height: 1.6; margin-bottom: 15px; }
+        .intro-box ul { padding-left: 20px; font-size: 17px; line-height: 1.6; }
+        .intro-box li { margin-bottom: 8px; }
+
+        /* NOTÍCIA & BOLETIM */
+        .news-portal { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .news-header { background: #b91c1c; color: white; padding: 10px 20px; font-weight: bold; font-family: 'Urbanist', sans-serif; letter-spacing: 2px; display: flex; justify-content: space-between; }
+        .news-image { width: 100%; height: 250px; background: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000') center/cover; }
+        .news-body { padding: 30px; }
+        .news-body h3 { font-size: 24px; color: #0f172a; margin-bottom: 15px; }
+        .news-body p { font-size: 18px; line-height: 1.6; color: #334155; }
+
+        .bulletin-box { border: 2px solid #0f172a; background: #f8fafc; padding: 40px; border-radius: 4px; position: relative; }
+        .bulletin-box::before { content: 'DOCUMENTO OFICIAL'; position: absolute; top: -12px; left: 30px; background: #f8fafc; padding: 0 10px; font-weight: bold; color: var(--primary); font-family: 'Urbanist'; }
+        .bulletin-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .bulletin-logo { font-size: 24px; font-weight: 900; color: var(--secondary); letter-spacing: -1px; }
+
+        /* CATALOG TABLE */
+        .catalog-container { height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); background: #fff;}
+        table { width: 100%; border-collapse: collapse; font-size: 14px; font-family: 'Courier New', monospace; }
+        th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: var(--secondary); color: white; font-weight: bold; position: sticky; top: 0; z-index: 10; font-family: 'DM Sans', sans-serif; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #e2e8f0; cursor: pointer; }
+
+        /* ESTOQUE / FORNECEDORES */
+        .alert-stock { background: #fee2e2; border-left: 6px solid #ef4444; padding: 20px; border-radius: 4px; margin-bottom: 25px; }
+        .alert-stock h3 { color: #991b1b; margin-bottom: 10px; font-size: 20px; }
+        .supplier-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .supplier-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .supplier-info h4 { font-size: 18px; color: var(--secondary); margin-bottom: 5px; }
+        .supplier-info p { color: var(--text-muted); font-size: 14px; }
+        .supplier-price { text-align: right; margin-top: 10px;}
+        .supplier-price .total { font-size: 22px; font-weight: bold; color: var(--primary-dark); }
+
+        /* INTERACTIVE MANUAL */
+        .manual-container { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 10px;}
+        details { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        summary { padding: 18px 20px; font-weight: bold; cursor: pointer; background: var(--secondary-light); color: white; font-family: 'Urbanist', sans-serif; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '\f078'; font-family: 'FontAwesome'; transition: transform 0.3s; }
+        details[open] summary::after { transform: rotate(180deg); }
+        .details-content { padding: 20px; border-top: 1px solid var(--border); background: #fff; line-height: 1.6; }
+        .details-content ul { padding-left: 20px; margin-top: 10px; }
+
+        /* FORM */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--secondary); font-size: 14px; text-transform: uppercase; }
+        .form-control { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 16px; outline: none; transition: border-color 0.2s; background: #f8fafc; }
+        .form-control:focus { border-color: var(--primary); background: #fff; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background: #f1f5f9; padding: 20px; border-radius: 4px; border-left: 4px solid var(--primary); margin-bottom: 20px; }
+        .checkbox-group input { margin-top: 4px; transform: scale(1.3); cursor: pointer; }
+
+        /* GRADING / FEEDBACK SCREEN */
+        .feedback-container { text-align: center; }
+        .score-circle { width: 150px; height: 150px; border-radius: 50%; border: 8px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px; font-family: 'Urbanist', sans-serif; }
+        .score-circle .number { font-size: 54px; font-weight: 900; line-height: 1; }
+        .score-circle .label { font-size: 16px; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
+        
+        .score-excellent { border-color: var(--success); color: var(--success); }
+        .score-good { border-color: var(--primary); color: var(--primary); }
+        .score-regular { border-color: var(--danger); color: var(--danger); }
+
+        .feedback-table { width: 100%; margin-top: 30px; font-size: 14px; font-family: 'DM Sans', sans-serif; border-collapse: collapse; overflow-x: auto; display: block;}
+        .feedback-table th { background: var(--secondary); color: white; text-align: center; padding: 12px;}
+        .feedback-table td { text-align: center; padding: 15px; border-bottom: 1px solid var(--border);}
+        .feedback-table td.correto { color: var(--success); font-weight: bold; }
+        .feedback-table td.incorreto { color: var(--danger); font-weight: bold; }
+
+        /* PREVIEW DOCUMENT */
+        .preview-container { display: none; background: #fff; border: 1px solid #ccc; padding: 50px; box-shadow: 0 0 20px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; color: #000; font-family: 'Arial', sans-serif; overflow-x: auto;}
+        .preview-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+        .preview-row { display: flex; border-bottom: 1px solid #eee; padding: 10px 0; flex-wrap: wrap;}
+        .preview-label { font-weight: bold; width: 40%; min-width: 150px;}
+        .preview-value { width: 60%; }
+        .signature-block { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; flex-wrap: wrap; gap: 20px;}
+        .signature-line { border-top: 1px solid #000; width: 45%; min-width: 200px; padding-top: 10px; }
+
+        /* FOOTER CONTROLS */
+        .footer { padding: 20px; background-color: var(--secondary-light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .btn { padding: 14px 28px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; border: none; transition: all 0.2s; font-family: 'Urbanist', sans-serif; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: center; flex: 1; min-width: 150px;}
+        .btn-outline { background-color: transparent; border: 1px solid #64748b; color: white; }
+        .btn-outline:hover { background-color: rgba(255,255,255,0.1); }
+        .btn-primary { background-color: var(--primary); color: var(--secondary); }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { background-color: #059669; }
+        
+        .hidden { display: none !important; }
+
+        @media (min-width: 768px) {
+            .footer { padding: 20px 40px; }
+            .btn { width: auto; flex: none; }
+            .content-area { padding: 40px; }
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            .preview-container, .preview-container * { visibility: visible; }
+            .preview-container { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+            .app-container { box-shadow: none; }
+            .header, .stepper, .footer, .feedback-container { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h1>Manutenção Operacional</h1>
+        <p>Plataforma de Simulação de Processos e Documentação Técnica</p>
+    </div>
+
+    <!-- Stepper Navigation -->
+    <div class="stepper" id="stepper-nav">
+        <div class="step-indicator active" id="ind-1"><div class="step-number"><i class="fa-solid fa-play"></i></div><span>Início</span></div>
+        <div class="step-indicator" id="ind-2"><div class="step-number">1</div><span>Notícia</span></div>
+        <div class="step-indicator" id="ind-3"><div class="step-number">2</div><span>Boletim</span></div>
+        <div class="step-indicator" id="ind-4"><div class="step-number">3</div><span>Catálogo</span></div>
+        <div class="step-indicator" id="ind-5"><div class="step-number">4</div><span>Estoque</span></div>
+        <div class="step-indicator" id="ind-6"><div class="step-number">5</div><span>Manuais</span></div>
+        <div class="step-indicator" id="ind-7"><div class="step-number">6</div><span>Laudo</span></div>
+    </div>
+
+    <div class="content-area">
+        
+        <!-- PASSO 1: INÍCIO -->
+        <div class="step-content active" id="step-1">
+            <h2 class="section-title">Bem-vindo(a), Jovem Aprendiz!</h2>
+            
+            <div class="intro-box">
+                <h3><i class="fa-solid fa-wrench" style="color: var(--primary);"></i> O Papel da Manutenção Moderna</h3>
+                <p>Na área de Mecânica de Manutenção de Máquinas Industriais, apertar parafusos e trocar peças é apenas a ponta do iceberg. A maior habilidade de um mecânico de excelência é a sua capacidade de se comunicar tecnicamente e de seguir normas rigorosas.</p>
+                <p>Uma peça errada ou um parafuso com o aperto (torque) incorreto pode causar acidentes graves, paradas de fábrica que custam milhões, ou até explosões em linhas de alta pressão.</p>
+            </div>
+
+            <div class="intro-box">
+                <h3><i class="fa-solid fa-brain" style="color: var(--primary);"></i> Competências Desenvolvidas Aqui:</h3>
+                <ul>
+                    <li><strong>Leitura Atenta:</strong> Capacidade de extrair dados críticos de textos jornalísticos e boletins técnicos sem depender de resumos prontos.</li>
+                    <li><strong>Pesquisa em Catálogos:</strong> Habilidade para navegar em sistemas integrados (ERP) com centenas de itens, ignorando distrações e especificações parecidas.</li>
+                    <li><strong>Tomada de Decisão:</strong> Analisar urgências logísticas e de suprimentos que impactam a segurança e a continuidade da planta.</li>
+                    <li><strong>Responsabilidade Normativa:</strong> Cumprir as normas de segurança (como a NR-13 para vasos de pressão) e emitir Laudos de Conformidade estruturados.</li>
+                </ul>
+            </div>
+
+            <div class="intro-box" style="border-left: 6px solid var(--success);">
+                <h3><i class="fa-solid fa-clipboard-user" style="color: var(--success);"></i> A Sua Missão de Hoje:</h3>
+                <p>Você assumirá o papel de Auxiliar de Manutenção em uma planta industrial no polo de Barcarena. Um alerta de segurança global acabou de ser emitido para uma válvula crítica da fábrica.</p>
+                <p>Sua missão é investigar o defeito, encontrar a peça no catálogo, solicitar a compra no mercado, checar o manual adequado e entregar o Laudo Técnico para o seu Supervisor. Você será avaliado (Nota de 0 a 10) pela precisão de suas ações técnicas.</p>
+            </div>
+        </div>
+
+        <!-- PASSO 2: NOTÍCIA -->
+        <div class="step-content" id="step-2">
+            <h2 class="section-title">Informativo Externo</h2>
+            <div class="news-portal">
+                <div class="news-header">
+                    <span>PORTAL DA INDÚSTRIA</span>
+                    <span>15 DE MAIO DE 2026</span>
+                </div>
+                <div class="news-image"></div>
+                <div class="news-body">
+                    <h3>Falha em Válvulas de Alívio Causa Parada Inesperada em Refinarias da Região</h3>
+                    <p>O setor de engenharia de manutenção de diversas plantas industriais operando em regiões costeiras e ambientes salinos relatou, nesta manhã, incidentes operacionais graves.</p><br>
+                    <p>O problema foi rastreado até o travamento prematuro da mola de retorno em Válvulas de Alívio de Pressão (PSV). Especialistas apontam que o material original em aço carbono está sofrendo fadiga acelerada e corrosão devido à névoa salina, gerando um risco iminente de sobrepressão e explosão nas linhas de vapor.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO 3: BOLETIM -->
+        <div class="step-content" id="step-3">
+            <h2 class="section-title">Caixa de Entrada: Engenharia</h2>
+            <div class="bulletin-box">
+                <div class="bulletin-header">
+                    <div class="bulletin-logo">VÁLVULAS INDUSTRIAIS S/A</div>
+                    <div style="text-align: right; font-weight: bold; color: #b91c1c;">URGENTE / RECALL</div>
+                </div>
+                <h3 style="font-size: 22px; margin-bottom: 20px;">Boletim Técnico de Segurança - BT-2026/04</h3>
+                <p style="font-size: 18px; margin-bottom: 10px;"><strong>Para:</strong> Coordenadores de Manutenção e PCM</p>
+                <p style="font-size: 18px; margin-bottom: 20px;"><strong>Equipamento Afetado:</strong> Válvula de Alívio de Pressão Série VAP-300.</p>
+                <div style="background: #fff; padding: 20px; border-left: 4px solid var(--primary); font-size: 18px; line-height: 1.6;">
+                    Ação Corretiva Imediata:<br>
+                    Identificamos risco de falha na operação em ambientes agressivos (corrosivos). Solicitamos a todas as unidades que substituam preventivamente a mola interna fabricada em aço carbono pelo kit de atualização homologado em aço inox 316L.<br><br>
+                    Por favor, consulte o sistema de catálogo eletrônico para localizar o código exato da peça de reposição. O procedimento de desmontagem e o torque de aperto adequado devem ser rigorosamente seguidos conforme o manual de serviço do equipamento.
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO 4: CATÁLOGO -->
+        <div class="step-content" id="step-4">
+            <h2 class="section-title">Sistema ERP: Almoxarifado</h2>
+            <p style="margin-bottom: 15px;">Atenção às variações de série, tipo de componente e material. Localize o código correto exigido no boletim rolando a lista do sistema central.</p>
+            <div class="catalog-container">
+                <table>
+                    <thead>
+                        <tr><th>Cód.</th><th>Família/Série</th><th>Descrição do Componente</th><th>Especificação/Material</th></tr>
+                    </thead>
+                    <tbody id="catalog-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PASSO 5: ESTOQUE E FORNECEDORES -->
+        <div class="step-content" id="step-5">
+            <h2 class="section-title">Gestão de Suprimentos</h2>
+            <div class="alert-stock">
+                <h3><i class="fa-solid fa-triangle-exclamation"></i> ALERTA DO SISTEMA: ESTOQUE ZERADO</h3>
+                <p>O item pesquisado não possui saldo físico no Almoxarifado da planta. Uma requisição de compra precisará ser feita imediatamente no mercado.</p>
+            </div>
+            
+            <p style="margin-bottom: 15px; font-weight: bold; font-size: 18px;">Analise as 5 propostas comerciais abaixo e anote a Letra do fornecedor que você aprovaria para esta intervenção na fábrica:</p>
+
+            <div class="supplier-card">
+                <div class="supplier-info">
+                    <h4>Fornecedor A (Metalúrgica Sul)</h4>
+                    <p>Prazo de Entrega: <strong>12 dias úteis</strong> | Modal: Rodoviário Normal</p>
+                </div>
+                <div class="supplier-price">
+                    <p>Custo Peça: R$ 380,00 + Frete Grátis</p>
+                    <p class="total">R$ 380,00</p>
+                </div>
+            </div>
+
+            <div class="supplier-card">
+                <div class="supplier-info">
+                    <h4>Fornecedor B (Distribuidora Express Barcarena)</h4>
+                    <p>Prazo de Entrega: <strong>Imediato (1 dia)</strong> | Modal: Frota Local Dedicada</p>
+                </div>
+                <div class="supplier-price">
+                    <p>Custo Peça: R$ 850,00 + Frete: R$ 150,00</p>
+                    <p class="total">R$ 1.000,00</p>
+                </div>
+            </div>
+
+            <div class="supplier-card">
+                <div class="supplier-info">
+                    <h4>Fornecedor C (Importadora Leste)</h4>
+                    <p>Prazo de Entrega: <strong>30 dias</strong> | Modal: Marítimo</p>
+                </div>
+                <div class="supplier-price">
+                    <p>Custo Peça: R$ 250,00 + Frete: R$ 50,00</p>
+                    <p class="total">R$ 300,00</p>
+                </div>
+            </div>
+
+            <div class="supplier-card">
+                <div class="supplier-info">
+                    <h4>Fornecedor D (Válvulas & Cia Nacional)</h4>
+                    <p>Prazo de Entrega: <strong>5 dias úteis</strong> | Modal: Rodoviário Expresso</p>
+                </div>
+                <div class="supplier-price">
+                    <p>Custo Peça: R$ 500,00 + Frete: R$ 100,00</p>
+                    <p class="total">R$ 600,00</p>
+                </div>
+            </div>
+
+            <div class="supplier-card">
+                <div class="supplier-info">
+                    <h4>Fornecedor E (Centro Logístico Sudeste)</h4>
+                    <p>Prazo de Entrega: <strong>2 dias úteis</strong> | Modal: Aéreo</p>
+                </div>
+                <div class="supplier-price">
+                    <p>Custo Peça: R$ 600,00 + Frete: R$ 250,00</p>
+                    <p class="total">R$ 850,00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO 6: MANUAIS -->
+        <div class="step-content" id="step-6">
+            <h2 class="section-title">Biblioteca de Manuais</h2>
+            <p style="margin-bottom: 20px;">Selecione a documentação correspondente ao ativo para consultar os procedimentos técnicos e normas aplicáveis.</p>
+            
+            <div class="manual-container">
+                <details>
+                    <summary>Manual de Serviço: Bombas Centrífugas (Série CP e KSB)</summary>
+                    <div class="details-content">
+                        <p>Procedimento padrão de substituição de rolamentos e selo mecânico. Verificar alinhamento a laser após a montagem do eixo. Torque dos parafusos da carcaça: 55 Nm. Lubrificação exclusiva com graxa base complexo de lítio EP2. Atentar-se à NR-12 para proteção de partes móveis.</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Manual de Serviço: Compressores de Parafuso (Série CPX)</summary>
+                    <div class="details-content">
+                        <p>Desligar a chave geral e realizar bloqueio elétrico (LOTO). Troca do elemento separador ar/óleo a cada 4.000 horas. Torque nos parafusos do cabeçote: 120 Nm. Utilizar óleo sintético ISO VG 46. Realizar purga do reservatório antes da intervenção.</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Manual de Serviço: Série VAP-100 e VAP-200</summary>
+                    <div class="details-content">
+                        <p>Preparação: Despressurizar a linha completamente antes de iniciar a intervenção.</p>
+                        <p>Desmontagem: Remover os 4 parafusos da tampa superior. Extrair a mola antiga com cuidado.</p>
+                        <p>Montagem e Torque: Inserir o novo componente. Aplicar 25 Nm (Série VAP-100) ou 35 Nm (Série VAP-200) utilizando padrão cruzado para evitar empenamento do castelo de ferro fundido.</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Manual de Serviço: Série VAP-300</summary>
+                    <div class="details-content">
+                        <p>A intervenção neste equipamento envolve riscos severos. Jamais iniciar o serviço sem a Permissão de Trabalho (PT) validada pelo setor de Segurança e Saúde no Trabalho (SST). O bloqueio total do vaso de pressão é obrigatório e deve atender estritamente à Norma Regulamentadora NR-13.</p>
+                        <br>
+                        <p>Procedimento de Troca de Mola:</p>
+                        <ul>
+                            <li>Afrouxar o castelo superior gradativamente para alívio residual.</li>
+                            <li>Remover o disco e a mola danificada.</li>
+                            <li>Realizar a limpeza da sede da válvula com solvente adequado.</li>
+                            <li>Instalar o novo componente verificando o alinhamento central.</li>
+                            <li>Para garantir a vedação estanque desta série, é imperativo aplicar 45 Nm nos parafusos prisioneiros, utilizando exclusivamente torquímetro devidamente aferido.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Manual de Serviço: Válvulas Gaveta e Globo (Série GAV / GLO)</summary>
+                    <div class="details-content">
+                        <p>Manutenção preventiva da haste rotativa. Substituir engaxetamento de teflon a cada ciclo anual. Apertar sobreposta da gaxeta com torque de 15 Nm. Não utilizar chaves de grifo no volante para não comprometer as estrias de acionamento.</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Manual de Serviço: Série VAP-400</summary>
+                    <div class="details-content">
+                        <p>Segurança: Exige bloqueio duplo e dreno aberto (DBB). Atende NR-13 e NR-33 se operado em espaço confinado.</p>
+                        <p>Procedimento: A válvula VAP-400 possui castelo selado a fogo. Remover as travas laterais. Extrair o conjunto de força com auxílio de talha manual.</p>
+                        <p>Montagem e Torque: Aplicar pasta anti-engripante cobreada nos prisioneiros. O torque exigido para a série 400 é de 85 Nm, aplicado obrigatoriamente em três etapas progressivas (30%, 60%, 100%).</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Manual de Serviço: Atuadores Pneumáticos (Série AT-50)</summary>
+                    <div class="details-content">
+                        <p>Isolar a rede de ar comprimido. Pressão máxima de trabalho: 8 bar. Inspecionar o-rings do pistão rotativo e lubrificar com graxa de silicone. Torque nos parafusos das tampas laterais: 20 Nm. Teste de estanqueidade obrigatório após a montagem.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- PASSO 7: LAUDO FORM -->
+        <div class="step-content" id="step-7">
+            <h2 class="section-title">Emissão do Laudo de Conformidade</h2>
+            <form id="laudo-form" onsubmit="corrigirAtividade(event)">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nome do Aluno (Responsável Técnico):</label>
+                        <input type="text" id="f-nome" class="form-control" placeholder="Digite seu nome completo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Equipamento Alvo (Modelo/Série):</label>
+                        <input type="text" id="f-equip" class="form-control" placeholder="Ex: Válvula Série X" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Motivo da Intervenção:</label>
+                        <input type="text" id="f-motivo" class="form-control" placeholder="Referência ao chamado/boletim" required>
+                    </div>
+
+                    <div class="form-group full-width checkbox-group">
+                        <input type="checkbox" id="nr-check">
+                        <label for="nr-check" style="margin-bottom: 0; text-transform: none; font-weight: normal;">Declaro que a linha foi despressurizada e bloqueada, atendendo aos requisitos de segurança para Vasos de Pressão conforme a Norma <strong>NR-13</strong>.</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Material da Nova Peça:</label>
+                        <input type="text" id="f-material" class="form-control" placeholder="Especificação do material lido" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Código da Peça (Pesquisado no ERP):</label>
+                        <input type="text" id="f-codigo" class="form-control" placeholder="Ex: 88XX" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fornecedor Acionado (Letra):</label>
+                        <select id="f-fornecedor" class="form-control" required>
+                            <option value="">Selecione...</option>
+                            <option value="A">Fornecedor A</option>
+                            <option value="B">Fornecedor B</option>
+                            <option value="C">Fornecedor C</option>
+                            <option value="D">Fornecedor D</option>
+                            <option value="E">Fornecedor E</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Parâmetro de Torque Aplicado (Manual):</label>
+                        <input type="text" id="f-torque" class="form-control" placeholder="Valor numérico de aperto" required>
+                    </div>
+                </div>
+                <button type="submit" id="btn-submit" class="hidden"></button>
+            </form>
+        </div>
+
+        <!-- TELA DE FEEDBACK E CORREÇÃO -->
+        <div class="step-content" id="step-feedback">
+            <h2 class="section-title">Análise de Desempenho Técnico</h2>
+            
+            <div class="feedback-container">
+                <div class="score-circle" id="score-display">
+                    <span class="number" id="nota-final">0</span>
+                    <span class="label" id="nota-label">Pontos</span>
+                </div>
+                <h3 id="feedback-message" style="font-size: 22px; margin-bottom: 20px; color: var(--secondary);"></h3>
+                <p id="feedback-submessage" style="color: var(--text-muted); font-size: 16px;"></p>
+
+                <table class="feedback-table">
+                    <thead>
+                        <tr>
+                            <th>Item Analisado</th>
+                            <th>A Sua Resposta</th>
+                            <th>Gabarito Técnico</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-body">
+                        <!-- Preenchido dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <button class="btn btn-primary" onclick="mostrarLaudoFinal()">Visualizar Documento Final Formulado</button>
+            </div>
+        </div>
+
+        <!-- PREVIEW DO LAUDO -->
+        <div class="preview-container" id="laudo-preview">
+            <div class="preview-header">
+                <h2>LAUDO TÉCNICO DE CONFORMIDADE</h2>
+                <p>DEPARTAMENTO DE MANUTENÇÃO - PLANTA BARCARENA</p>
+            </div>
+            
+            <h3 style="margin: 20px 0 10px;">1. DADOS DA INTERVENÇÃO</h3>
+            <div class="preview-row"><div class="preview-label">Responsável Técnico:</div><div class="preview-value" id="p-nome"></div></div>
+            <div class="preview-row"><div class="preview-label">Data da Emissão:</div><div class="preview-value" id="p-data"></div></div>
+            <div class="preview-row"><div class="preview-label">Equipamento Alvo:</div><div class="preview-value" id="p-equip"></div></div>
+            <div class="preview-row"><div class="preview-label">Motivo (Diagnóstico):</div><div class="preview-value" id="p-motivo"></div></div>
+
+            <h3 style="margin: 20px 0 10px;">2. REGISTRO DE EXECUÇÃO E MATERIAIS</h3>
+            <div class="preview-row"><div class="preview-label">Material da Nova Peça:</div><div class="preview-value" id="p-material"></div></div>
+            <div class="preview-row"><div class="preview-label">Código ERP Aplicado:</div><div class="preview-value" id="p-codigo"></div></div>
+            <div class="preview-row"><div class="preview-label">Fornecedor Aprovado:</div><div class="preview-value" id="p-fornecedor"></div></div>
+            <div class="preview-row"><div class="preview-label">Torque de Aperto:</div><div class="preview-value" id="p-torque"></div></div>
+
+            <h3 style="margin: 20px 0 10px;">3. DECLARAÇÃO DE SEGURANÇA</h3>
+            <p style="border: 1px solid #000; padding: 10px;" id="p-nr-status"></p>
+
+            <div class="signature-block">
+                <div class="signature-line">
+                    <span id="p-assinatura-nome" style="font-weight: bold;"></span><br>Técnico Executante
+                </div>
+                <div class="signature-line">
+                    <strong>Ruan Lucas</strong><br>Supervisor de Manutenção
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer" id="footer-controls">
+        <button class="btn btn-outline" id="btn-prev" onclick="changeStep(-1)" disabled>Voltar</button>
+        <button class="btn btn-primary" id="btn-next" onclick="changeStep(1)">Avançar Etapa</button>
+        <button class="btn btn-success hidden" id="btn-finish" onclick="document.getElementById('btn-submit').click()">Entregar Avaliação</button>
+    </div>
+    
+    <div class="footer hidden" id="footer-print" style="justify-content: center; background: #fff;">
+        <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir / Salvar PDF</button>
+        <button class="btn btn-outline" style="margin-left: 20px; color: #000;" onclick="location.reload()">Refazer Simulação</button>
+    </div>
+
+</div>
+
+<script>
+    // Geração dinâmica do catálogo
+    document.addEventListener("DOMContentLoaded", () => {
+        const catalogBody = document.getElementById('catalog-body');
+        
+        const coreItems = [
+            { cod: '8112', fam: 'VAP-100', desc: 'Mola de Retorno', mat: 'Aço Carbono' },
+            { cod: '8216', fam: 'VAP-200', desc: 'Kit Reparo Mola', mat: 'Aço Inox 316L' },
+            { cod: '8318', fam: 'VAP-300', desc: 'Mola de Compressão', mat: 'Aço Carbono' },
+            { cod: '8319', fam: 'VAP-300', desc: 'Mola de Retorno (Padrão Antigo)', mat: 'Aço Carbono' },
+            { cod: '8320', fam: 'VAP-300', desc: 'Kit Reparo Mola (Uso Geral)', mat: 'Aço Inox 304' },
+            { cod: '8821', fam: 'VAP-300', desc: 'Kit Reparo Mola', mat: 'Aço Inox 410' },
+            { cod: '8822', fam: 'VAP-300', desc: 'Kit Reparo Mola (Corrosivos)', mat: 'Aço Inox 316L' },
+            { cod: '8823', fam: 'VAP-300', desc: 'Mola de Compressão (Alta Pressão)', mat: 'Aço Inox 316L' },
+            { cod: '8824', fam: 'VAP-300', desc: 'Kit de Vedação Interna', mat: 'Viton' },
+            { cod: '8410', fam: 'VAP-400', desc: 'Kit Reparo Mola', mat: 'Aço Inox 316L' }
+        ];
+
+        const fams = ['BMB-10', 'MOT-50', 'GAV-200', 'RET-05', 'ENG-10', 'FLG-150', 'PAR-88', 'CPX-40', 'AT-50', 'GLO-150', 'VAL-90', 'BMB-25', 'FIL-01'];
+        const descs = ['Rolamento Cilíndrico', 'Selo Mecânico', 'Junta de Vedação', 'Eixo Principal', 'Rotor Impulsor', 'Estator Enrolado', 'Carcaça Bipartida', 'Anel O-Ring', 'Parafuso Sextavado', 'Porca Auto-travante', 'Engrenagem Helicoidal', 'Acoplamento Flexível', 'Filtro de Tela', 'Gaxeta Trançada', 'Pistão Pneumático', 'Válvula Direcional', 'Manômetro de Pressão', 'Flange Cego'];
+        const mats = ['Aço Inox 304', 'Aço Carbono WCB', 'Ferro Fundido Nodular', 'Bronze SAE 65', 'Borracha Nitrílica (NBR)', 'Viton (FKM)', 'Nylon 6.6', 'Teflon (PTFE)', 'Latão', 'Aço Liga B7', 'Poliuretano', 'Aço Inox 316L'];
+
+        let fullCatalog = [...coreItems];
+
+        for(let i = 1; i <= 190; i++) {
+            let randomCod = Math.floor(1000 + (i * 37) % 7000).toString();
+            if (randomCod === "8822") randomCod = "7822"; 
+            
+            fullCatalog.push({
+                cod: randomCod,
+                fam: fams[i % fams.length],
+                desc: descs[i % descs.length],
+                mat: mats[i % mats.length]
+            });
+        }
+
+        fullCatalog.sort((a, b) => parseInt(a.cod) - parseInt(b.cod));
+
+        let htmlRows = '';
+        fullCatalog.forEach(item => {
+            htmlRows += `<tr><td>${item.cod}</td><td>${item.fam}</td><td>${item.desc}</td><td>${item.mat}</td></tr>`;
+        });
+        catalogBody.innerHTML = htmlRows;
+    });
+
+    let currentStep = 1;
+    const totalSteps = 7; 
+
+    function changeStep(direction) {
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById(`ind-${currentStep}`).classList.remove('active');
+        
+        if (direction === 1) { document.getElementById(`ind-${currentStep}`).classList.add('completed'); } 
+        else { document.getElementById(`ind-${currentStep - 1}`).classList.remove('completed'); }
+
+        currentStep += direction;
+
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        document.getElementById(`ind-${currentStep}`).classList.add('active');
+
+        updateButtons();
+    }
+
+    function updateButtons() {
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnFinish = document.getElementById('btn-finish');
+
+        btnPrev.disabled = currentStep === 1;
+
+        if (currentStep === totalSteps) {
+            btnNext.classList.add('hidden');
+            btnFinish.classList.remove('hidden');
+        } else {
+            btnNext.classList.remove('hidden');
+            btnFinish.classList.add('hidden');
+        }
+    }
+
+    function corrigirAtividade(e) {
+        e.preventDefault();
+        
+        const equip = document.getElementById('f-equip').value.trim().toLowerCase();
+        const material = document.getElementById('f-material').value.trim().toLowerCase();
+        const codigo = document.getElementById('f-codigo').value.trim();
+        const fornecedor = document.getElementById('f-fornecedor').value;
+        const torque = document.getElementById('f-torque').value.trim().toLowerCase();
+        const isNrChecked = document.getElementById('nr-check').checked;
+
+        let nota = 0;
+        let htmlTabela = "";
+
+        function addRow(item, resAluno, resCorreta, isCorreto, pontos) {
+            if(isCorreto) nota += pontos;
+            htmlTabela += `
+                <tr>
+                    <td><strong>${item}</strong></td>
+                    <td>${resAluno}</td>
+                    <td>${resCorreta}</td>
+                    <td class="${isCorreto ? 'correto' : 'incorreto'}">${isCorreto ? '<i class="fa-solid fa-check"></i> Correto' : '<i class="fa-solid fa-xmark"></i> Errado'}</td>
+                </tr>`;
+        }
+
+        const checkEquip = equip.includes("300") || equip.includes("vap");
+        addRow("Equipamento", document.getElementById('f-equip').value, "Série VAP-300", checkEquip, 1);
+
+        const checkMaterial = material.includes("316") || material.includes("inox 316");
+        addRow("Material / Liga", document.getElementById('f-material').value, "Aço Inox 316L", checkMaterial, 1);
+
+        const checkCodigo = codigo === "8822";
+        addRow("Código da Peça", document.getElementById('f-codigo').value, "8822", checkCodigo, 3);
+
+        const checkFornecedor = fornecedor === "B";
+        addRow("Fornecedor Aprovado", fornecedor ? `Fornecedor ${fornecedor}` : "-", "Fornecedor B (Urgência Máxima)", checkFornecedor, 2);
+
+        const checkTorque = torque.includes("45");
+        addRow("Torque de Aperto", document.getElementById('f-torque').value, "45 Nm", checkTorque, 2);
+
+        addRow("Norma de Segurança", isNrChecked ? "Checada" : "Ignorada", "Check NR-13 Obrigatório", isNrChecked, 1);
+
+        preencherDadosLaudo(isNrChecked);
+        mostrarResultados(nota, htmlTabela);
+    }
+
+    function mostrarResultados(nota, htmlTabela) {
+        // --- CÓDIGO NOVO: ENVIO PARA O GOOGLE SHEETS ---
+        const nomeAluno = document.getElementById('f-nome').value;
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyrrq-1qkPC__13p064EDKq_RmR-zx01QO4x9WHDiMX2munlwxo9vuJpZnR_DTZK0mx/exec"; 
+
+        fetch(`${scriptURL}?nome=${encodeURIComponent(nomeAluno)}&nota=${nota}`)
+            .then(response => console.log("Nota salva no banco de dados com sucesso!"))
+            .catch(error => console.error("Erro ao salvar nota no banco de dados:", error));
+        // -----------------------------------------------
+
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById('step-feedback').classList.add('active');
+        document.getElementById('stepper-nav').classList.add('hidden');
+        document.getElementById('footer-controls').classList.add('hidden');
+
+        document.querySelector('.header h1').innerText = "Correção Automática";
+        document.querySelector('.header p').innerText = "Verifique o seu desempenho na simulação.";
+
+        const circle = document.getElementById('score-display');
+        document.getElementById('nota-final').innerText = nota;
+        document.getElementById('feedback-body').innerHTML = htmlTabela;
+
+        const title = document.getElementById('feedback-message');
+        const subtitle = document.getElementById('feedback-submessage');
+
+        if (nota >= 9) {
+            circle.className = "score-circle score-excellent";
+            title.innerText = "Desempenho Excelente! (9 a 10)";
+            title.style.color = "var(--success)";
+            subtitle.innerText = "Parabéns! Você demonstrou alto domínio de pesquisa em catálogos, normas manuais e gerenciou os riscos priorizando o fornecimento imediato e seguro.";
+        } else if (nota >= 7) {
+            circle.className = "score-circle score-good";
+            title.innerText = "Desempenho Bom! (7 a 8)";
+            title.style.color = "var(--primary)";
+            subtitle.innerText = "Você encontrou a maioria das informações corretas. Lembre-se que em casos de alerta de segurança grave, o custo e o frete ficam em segundo plano em prol de evitar riscos maiores.";
+        } else {
+            circle.className = "score-circle score-regular";
+            title.innerText = "Desempenho Regular! (0 a 6)";
+            title.style.color = "var(--danger)";
+            subtitle.innerText = "Atenção Jovem Aprendiz! Um erro de código ou de torque na indústria pode causar sérios acidentes. Verifique onde você se confundiu na leitura documental.";
+        }
+    }
+
+    function preencherDadosLaudo(isNrChecked) {
+        document.getElementById('p-nome').innerText = document.getElementById('f-nome').value;
+        document.getElementById('p-assinatura-nome').innerText = document.getElementById('f-nome').value;
+        document.getElementById('p-equip').innerText = document.getElementById('f-equip').value;
+        document.getElementById('p-motivo').innerText = document.getElementById('f-motivo').value;
+        document.getElementById('p-material').innerText = document.getElementById('f-material').value;
+        document.getElementById('p-codigo').innerText = document.getElementById('f-codigo').value;
+        document.getElementById('p-fornecedor').innerText = "Fornecedor " + document.getElementById('f-fornecedor').value;
+        document.getElementById('p-torque').innerText = document.getElementById('f-torque').value;
+        
+        if(isNrChecked) {
+            document.getElementById('p-nr-status').innerHTML = "[ X ] Serviço executado em conformidade estrutural com o bloqueio de energias perigosas, atendendo aos preceitos da Norma Regulamentadora NR-13.";
+        } else {
+            document.getElementById('p-nr-status').innerHTML = "[   ] O TÉCNICO NÃO ATESTOU A SEGURANÇA (VIOLAÇÃO DA NR-13).";
+            document.getElementById('p-nr-status').style.color = "red";
+        }
+
+        const hoje = new Date();
+        document.getElementById('p-data').innerText = hoje.toLocaleDateString('pt-BR');
+    }
+
+    function mostrarLaudoFinal() {
+        document.getElementById('step-feedback').classList.remove('active');
+        document.getElementById('laudo-preview').style.display = 'block';
+        document.getElementById('footer-print').classList.remove('hidden');
+        document.querySelector('.header h1').innerText = "Visualização do Laudo";
+        document.querySelector('.header p').innerText = "Documento final preenchido com as suas respostas da simulação.";
+    }
+</script>
+
+</body>
+</html>
